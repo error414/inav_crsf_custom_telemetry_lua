@@ -1,5 +1,5 @@
 local CRSF_FRAME_CUSTOM_TELEM   = 0x88
-local SIMULATOR   = true
+local SIMULATOR   = false
 
 local function myprint (format, ...)
     local str = string.format("INAV: " .. format, ...)
@@ -118,66 +118,47 @@ end
 
 
 local sensorsById = {
-    -- No data
     [0]  = { sid = 0x1000, name = "NONE", unit = UNIT_RAW, prec = 0, dec = decNil },
-    -- Heartbeat (millisecond uptime % 60000)
     [1]  = { sid = 0x1001, name = "BEAT", unit = UNIT_RAW, prec = 0, dec = decU16 },
-    -- Main battery voltage
+
     [2]  = { sid = 0x1011, name = "Vbat", unit = UNIT_VOLTS, prec = 2, dec = decU16 },
-    -- Main battery current
     [3]  = { sid = 0x1012, name = "Curr", unit = UNIT_AMPS, prec = 2, dec = decU16 },
-    -- Main battery used capacity
     [4]  = { sid = 0x1013, name = "Capa", unit = UNIT_MAH, prec = 0, dec = decU16 },
-    -- Main battery charge / fuel level
     [5]  = { sid = 0x1014, name = "Bat%", unit = UNIT_PERCENT, prec = 0, dec = decU8 },
-    -- Main battery cell count
     [6]  = { sid = 0x1020, name = "Cel#", unit = UNIT_RAW, prec = 0, dec = decU8 },
-    -- Main battery cell voltage (minimum/average)
     [7]  = { sid = 0x1021, name = "Vcel", unit = UNIT_VOLTS, prec = 2, dec = decCellV },
-    -- Main battery cell voltages
     [8]  = { sid = 0x102F, name = "Cels", unit = UNIT_VOLTS, prec = 2, dec = decCells },
-    -- Variometer (combined baro+GPS)
-    [9]  = { sid = 0x10B3, name = "Var", unit = UNIT_METERS_PER_SECOND, prec = 2, dec = decS16 },
-    -- Heading (combined gyro+mag+GPS)
-    [10] = { sid = 0x10B1, name = "Hdg", unit = UNIT_DEGREE, prec = 1, dec = decS16 },
-    -- Altitude (combined baro+GPS)
-    [11] = { sid = 0x10B2, name = "Alt", unit = UNIT_METERS, prec = 2, dec = decS24 },
-    -- Attitude (hires combined)
+
+    [9]  = { sid = 0x10B2, name = "Alt", unit = UNIT_METERS, prec = 2, dec = decS24 },
+    [10] = { sid = 0x10B3, name = "Var", unit = UNIT_METERS_PER_SECOND, prec = 2, dec = decS16 },
+    [11] = { sid = 0x10B1, name = "Hdg", unit = UNIT_DEGREE, prec = 1, dec = decS16 },
+
     [12] = { sid = 0x1100, name = "Attd", unit = UNIT_DEGREE, prec = 1, dec = decAttitude },
-    -- Attitude pitch
     [13] = { sid = 0x1101, name = "Ptch", unit = UNIT_DEGREE, prec = 0, dec = decS16 },
-    -- Attitude roll
     [14] = { sid = 0x1102, name = "Roll", unit = UNIT_DEGREE, prec = 0, dec = decS16 },
-    -- Attitude yaw
     [15] = { sid = 0x1103, name = "Yaw", unit = UNIT_DEGREE, prec = 0, dec = decS16 },
-    -- Acceleration X
+
     [16] = { sid = 0x1111, name = "AccX", unit = UNIT_G, prec = 1, dec = decS16 },
-    -- Acceleration Y
     [17] = { sid = 0x1112, name = "AccY", unit = UNIT_G, prec = 1, dec = decS16 },
-    -- Acceleration Z
     [18] = { sid = 0x1113, name = "AccZ", unit = UNIT_G, prec = 1, dec = decS16 },
-    -- GPS Satellite count
+
     [19] = { sid = 0x1121, name = "Sats", unit = UNIT_RAW, prec = 0, dec = decU8 },
-    -- GPS HDOP
     [20] = { sid = 0x1123, name = "HDOP", unit = UNIT_RAW, prec = 0, dec = decU8 },
-    -- GPS Coordinates
     [21] = { sid = 0x1125, name = "GPS", unit = UNIT_RAW, prec = 0, dec = decLatLong },
-    -- GPS altitude
-    [22] = { sid = 0x1126, name = "GAlt", unit = UNIT_METERS, prec = 1, dec = decS16 },
-    -- GPS heading
-    [23] = { sid = 0x1127, name = "GHdg", unit = UNIT_DEGREE, prec = 1, dec = decS16 },
-    -- GPS ground speed
+    [22] = { sid = 0x1126, name = "GAlt", unit = UNIT_METERS, prec = 1, dec = decU16 },
+    [23] = { sid = 0x1127, name = "GHdg", unit = UNIT_DEGREE, prec = 1, dec = decU16 },
     [24] = { sid = 0x1128, name = "GSpd", unit = UNIT_METERS_PER_SECOND, prec = 2, dec = decU16 },
-    -- GPS home distance
-    [25] = { sid = 0x1129, name = "GDis", unit = UNIT_METERS, prec = 1, dec = decU16 },
-    -- GPS home direction
-    [26] = { sid = 0x112A, name = "GDir", unit = UNIT_METERS, prec = 1, dec = decU16 },
-    -- CPU load
-    [27] = { sid = 0x1141, name = "CPU%", unit = UNIT_PERCENT, prec = 0, dec = decU8 },
-    -- Flight mode flags
-    [28] = { sid = 0x1201, name = "Mode", unit = UNIT_RAW, prec = 0, dec = decU16 },
-    -- Arming flags
-    [29] = { sid = 0x1202, name = "ARM", unit = UNIT_RAW, prec = 0, dec = decU8 },
+    [25] = { sid = 0x1129, name = "GDis", unit = UNIT_METERS, prec = 1, dec = decS16 },
+    [26] = { sid = 0x112A, name = "GDir", unit = UNIT_DEGREE, prec = 1, dec = decS16 },
+    [27] = { sid = 0x112B, name = "GAzi", unit = UNIT_DEGREE, prec = 1, dec = decS16 },
+
+    [28] = { sid = 0x1150, name = "CPU%", unit = UNIT_PERCENT, prec = 0, dec = decU8 },
+    [29] = { sid = 0x1251, name = "Mode", unit = UNIT_RAW, prec = 0, dec = decU16 },
+    [30] = { sid = 0x1252, name = "ARM", unit = UNIT_RAW, prec = 0, dec = decU8 },
+
+    -- ESC telemetry (pokud je potřeba)
+    [31] = { sid = 0x1131, name = "ESC_RPM", unit = UNIT_RPM, prec = 0, dec = decEscRpm },
+    [32] = { sid = 0x1136, name = "ESC_TEMP", unit = UNIT_CELSIUS, prec = 1, dec = decEscTemp },
 }
 
 local function getSensorBySID(sid)
